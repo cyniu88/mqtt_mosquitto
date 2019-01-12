@@ -1,0 +1,8 @@
+*build*
+*.user*
+alarm/alarmClock 
+CMakeFiles
+CMakeCache.txt
+iDom_TESTs-CMAKE
+default.profraw
+*.html
