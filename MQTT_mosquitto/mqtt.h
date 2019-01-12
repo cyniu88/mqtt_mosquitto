@@ -2,6 +2,7 @@
 #include <string>
 #include <functional>
 #include <mutex>
+#include <queue>
 
 class MQTT_mosquitto
 {
@@ -10,9 +11,11 @@ class MQTT_mosquitto
     int _keepalive;
     bool _clean_session;
     struct mosquitto *_mosq = NULL;
-
+    static bool _debugeMode;
+    static std::queue<std::pair<std::string,std::string>> _receivQueue;
 protected:
     std::mutex _publish_mutex;
+    static std::mutex _queue_mutex;
 public:
     MQTT_mosquitto(const std::string& username,
                    const std::string& host = "localhost",
@@ -22,9 +25,17 @@ public:
     ~MQTT_mosquitto();
 
     int publish(const std::string&  topic, const std::string& msg, int qos);
-    void run();
-    void subscribe(const std::string& topic);
+    void subscribe(const std::string& topic, int qos);
     void disconnect();
+    void turnOnDebugeMode();
+    void turnOffDebugeMode();
+
+    static void subscribeHandlerRunInThread(MQTT_mosquitto* ptrMQTT, const std::string &topic, int qos);
+private:
+    static void putToReceiveQueue(const std::string& topic, const std::string& msg);
+public:
+    static int getReceiveQueueSize();
+    static std::pair<std::string, std::string> getMessage();
 private:
     //callback
     static void my_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message);
