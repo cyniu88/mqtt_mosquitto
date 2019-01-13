@@ -25,7 +25,10 @@ before_install:
   - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq
   - sudo apt-get install libmpd-dev curl libmpdclient-dev cmake git llvm llvm-6.0-dev
-  - sudo apt-get install mosquitto libmosquitto-dev
+  - sudo add-apt-repository ppa:mosquitto-dev/mosquitto-ppa -y
+  - sudo apt-get update
+  - sudo apt-get install mosquitto
+  - sudo apt-get install -qq libmosquitto-dev
   - mosquitto &
 
 install: 
