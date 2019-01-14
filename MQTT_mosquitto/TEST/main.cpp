@@ -20,7 +20,7 @@ TEST_F(MQTT_BT, wrong_host)
 
 TEST_F(MQTT_BT, flow)
 {
-    int ilosc = 1;
+    int ilosc = 8;
     /// iot.eclipse.org
     MQTT_mosquitto mq("test_iDomServer",host,1883,60,false);
     mq.turnOnDebugeMode();
@@ -28,6 +28,11 @@ TEST_F(MQTT_BT, flow)
     puts("odpalmy subscribera MQTT w nowym watku");
     auto th1 = std::thread(MQTT_mosquitto::subscribeHandlerRunInThread,&mq, topicSubscribe.c_str() , 2);
     th1.detach();
+
+    while(MQTT_mosquitto::_subscribed == false){
+        puts("czekam");
+    }
+
 
     for(int i = 1; i < ilosc+1 ; ++ i)
     {

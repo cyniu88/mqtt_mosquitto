@@ -13,6 +13,8 @@ class MQTT_mosquitto
     struct mosquitto *_mosq = NULL;
     static bool _debugeMode;
     static std::queue<std::pair<std::string,std::string>> _receivQueue;
+public:
+    static bool _subscribed;
 protected:
     std::mutex _publish_mutex;
     static std::mutex _queue_mutex;

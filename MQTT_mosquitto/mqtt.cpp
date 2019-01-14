@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 bool MQTT_mosquitto::_debugeMode = false;
+bool MQTT_mosquitto::_subscribed = false;
 void MQTT_mosquitto::my_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message)
 {
     if(_debugeMode == true)
@@ -31,7 +32,6 @@ void MQTT_mosquitto::my_connect_callback(struct mosquitto *mosq, void *userdata,
     if(_debugeMode == true)
     {
         puts("my_connect_callback()");
-        int i;
         if(!result){
             /* Subscribe to broker information topics on successful connect. */
             //mosquitto_subscribe(mosq, NULL, "iDom/#", 2);
@@ -44,6 +44,7 @@ void MQTT_mosquitto::my_connect_callback(struct mosquitto *mosq, void *userdata,
 
 void MQTT_mosquitto::my_subscribe_callback(struct mosquitto *mosq, void *userdata, int mid, int qos_count, const int *granted_qos)
 {
+    _subscribed = true;
     if(_debugeMode == true)
     {
         puts("my_subscribe_callback()");
