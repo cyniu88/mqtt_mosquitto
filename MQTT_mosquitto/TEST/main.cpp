@@ -34,7 +34,9 @@ TEST_F(MQTT_BT, flow)
         mq.publish(topicPublish, "test message: " + std::to_string(i),0);
         std::cout << "wysłano wiadomosc numer: " << i << std::endl;
     }
-    std::this_thread::sleep_for(std::chrono::seconds(ilosc/3));
+    puts("start sleep");
+    std::this_thread::sleep_for(std::chrono::seconds(ilosc));
+    puts("stop sleep");
     int ssize = MQTT_mosquitto::getReceiveQueueSize();
     if( ssize != ilosc){
         FAIL() <<"error  nie odebralem wszystkich wiadomosci " << ssize << std::endl;
