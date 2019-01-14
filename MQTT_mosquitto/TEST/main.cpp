@@ -25,13 +25,13 @@ TEST_F(MQTT_BT, flow)
     MQTT_mosquitto mq("test_iDomServer",host,1883,60,false);
     mq.turnOnDebugeMode();
 
+    mq.subscribe(topicSubscribe,2);
     puts("odpalmy subscribera MQTT w nowym watku");
-    auto th1 = std::thread(MQTT_mosquitto::subscribeHandlerRunInThread,&mq, topicSubscribe.c_str() , 2);
+    auto th1 = std::thread(MQTT_mosquitto::subscribeHandlerRunInThread,&mq);
     th1.detach();
 
     while(MQTT_mosquitto::_subscribed == false){
     }
-
 
     for(int i = 1; i < ilosc+1 ; ++ i)
     {
@@ -59,6 +59,8 @@ TEST_F(MQTT_BT, flow)
             FAIL() << "a to nie jest ok porownanie: " << i << std::endl;
         }
     }
+   // std::string dtar;
+   // std::cin >> dtar;
     mq.disconnect();
 
 }

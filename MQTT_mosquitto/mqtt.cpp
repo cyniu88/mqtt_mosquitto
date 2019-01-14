@@ -33,16 +33,36 @@ void MQTT_mosquitto::my_connect_callback(struct mosquitto *mosq, void *userdata,
     {
         puts("my_connect_callback()");
         if(!result){
-            /* Subscribe to broker information topics on successful connect. */
-            //mosquitto_subscribe(mosq, NULL, "iDom/#", 2);
-            puts("connectd to broker");
-        }else{
+           puts("connectd to broker");
+          // mosquitto_subscribe(mosq,NULL, topic,qos);
+        }
+        else
+        {
             fprintf(stderr, "Connect failed\n");
         }
     }
 }
 
-void MQTT_mosquitto::my_subscribe_callback(struct mosquitto *mosq, void *userdata, int mid, int qos_count, const int *granted_qos)
+void MQTT_mosquitto::my_disconnect_callback(mosquitto *mosq, void *userdata, int result)
+{
+    if(_debugeMode == true)
+    {
+        puts("my_disconnect_callback()");
+        if(!result){
+           puts("disconnectd to broker");
+        }
+        else
+        {
+            fprintf(stderr, "Disconnect failed\n");
+        }
+    }
+}
+
+void MQTT_mosquitto::my_subscribe_callback(struct mosquitto *mosq,
+                                           void *userdata,
+                                           int mid,
+                                           int qos_count,
+                                           const int *granted_qos)
 {
     _subscribed = true;
     if(_debugeMode == true)
@@ -58,12 +78,26 @@ void MQTT_mosquitto::my_subscribe_callback(struct mosquitto *mosq, void *userdat
     }
 }
 
-void MQTT_mosquitto::my_log_callback(struct mosquitto *mosq, void *userdata, int level, const char *str)
+void MQTT_mosquitto::my_unsubscribe_callback(mosquitto *mosq, void *userdata, int result)
+{
+    if(_debugeMode == true)
+    {
+        puts("my_unsubscribe_callback()");
+
+        printf("Unubscribed");
+
+        printf("\n");
+    }
+}
+
+void MQTT_mosquitto::my_log_callback(struct mosquitto *mosq,
+                                     void *userdata,
+                                     int level,
+                                     const char *str)
 {
     if(_debugeMode == true)
     {
         puts("my_log_callback()");
-        /* Pring all log messages regardless of level. */
         printf("%s\n", str);
     }
 }
@@ -86,8 +120,10 @@ MQTT_mosquitto::MQTT_mosquitto(const std::string& username,
     }
     mosquitto_log_callback_set(_mosq, my_log_callback);
     mosquitto_connect_callback_set(_mosq, my_connect_callback);
+    mosquitto_disconnect_callback_set(_mosq, my_disconnect_callback);
     mosquitto_message_callback_set(_mosq, my_message_callback);
     mosquitto_subscribe_callback_set(_mosq, my_subscribe_callback);
+    mosquitto_unsubscribe_callback_set(_mosq, my_unsubscribe_callback);
 
     if(mosquitto_connect(_mosq, _host.c_str(), _port, _keepalive)){
         fprintf(stderr, "Unable to connect.\n");
@@ -119,7 +155,6 @@ int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, in
 void MQTT_mosquitto::subscribe(const std::string &topic, int qos)
 {
     mosquitto_subscribe(_mosq,NULL, topic.c_str(), qos);
-    mosquitto_loop_forever(_mosq, -1, 1);
 }
 
 void MQTT_mosquitto::disconnect()
@@ -169,7 +204,7 @@ std::pair<std::string, std::string> MQTT_mosquitto::getMessage()
     return _return;
 }
 
-void MQTT_mosquitto::subscribeHandlerRunInThread(MQTT_mosquitto* ptrMQTT, const std::string& topic, int qos)
+void MQTT_mosquitto::subscribeHandlerRunInThread(MQTT_mosquitto* ptrMQTT)
 {
-    ptrMQTT->subscribe(topic.c_str(), qos);
+    mosquitto_loop_forever(ptrMQTT->_mosq, -1, 1);
 }
