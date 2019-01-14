@@ -30,7 +30,6 @@ TEST_F(MQTT_BT, flow)
     th1.detach();
 
     while(MQTT_mosquitto::_subscribed == false){
-        puts("czekam");
     }
 
 
@@ -40,7 +39,7 @@ TEST_F(MQTT_BT, flow)
         std::cout << "wysłano wiadomosc numer: " << i << std::endl;
     }
     puts("start sleep");
-    std::this_thread::sleep_for(std::chrono::seconds(30));
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     puts("stop sleep");
     int ssize = MQTT_mosquitto::getReceiveQueueSize();
     if( ssize != ilosc){
