@@ -8,6 +8,7 @@ void MQTT_mosquitto::my_message_callback(struct mosquitto *mosq, void *userdata,
     if(_debugeMode == true)
     {
         puts("void my_message_callback()");
+        puts("\n\nodebralem:");
         if(message->payloadlen){
             printf("%s %s\n", message->topic, message->payload);
         }else{
