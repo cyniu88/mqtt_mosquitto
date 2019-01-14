@@ -20,7 +20,7 @@ TEST_F(MQTT_BT, wrong_host)
 
 TEST_F(MQTT_BT, flow)
 {
-    int ilosc = 10;
+    int ilosc = 1;
     /// iot.eclipse.org
     MQTT_mosquitto mq("test_iDomServer",host,1883,60,false);
     mq.turnOnDebugeMode();
