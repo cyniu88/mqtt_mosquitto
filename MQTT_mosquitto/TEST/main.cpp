@@ -10,27 +10,26 @@ class MQTT_BT : public ::testing::Test
 public:
     std::string topicSubscribe = "iDom/#";
     std::string topicPublish = "iDom/bt";
-    std::string host = "localhost";
+    std::string host = "test.mosquitto.org";
 };
 
 TEST_F(MQTT_BT, wrong_host)
 {
-    EXPECT_ANY_THROW(MQTT_mosquitto("test_iDomServer","fake host",1883,60,false));
+    EXPECT_ANY_THROW(MQTT_mosquitto("test_iDomServer","fake_topic","fake host",1883,60,false));
 }
 
 TEST_F(MQTT_BT, flow)
 {
-    int ilosc = 8;
+    int ilosc = 80;
     /// iot.eclipse.org
-    MQTT_mosquitto mq("test_iDomServer",host,1883,60,false);
+    MQTT_mosquitto mq("test_iDomServer",topicSubscribe,host,1883,60,false);
     mq.turnOnDebugeMode();
 
-    mq.subscribe(topicSubscribe,2);
     puts("odpalmy subscribera MQTT w nowym watku");
     auto th1 = std::thread(MQTT_mosquitto::subscribeHandlerRunInThread,&mq);
     th1.detach();
 
-    while(MQTT_mosquitto::_subscribed == false){
+    while(mq.callbackData.subscribed == false){
     }
 
     for(int i = 1; i < ilosc+1 ; ++ i)
@@ -75,5 +74,6 @@ int main(int argc, char *argv[])
 
     const char * PROG_INFO = " Basic TEST iDomServer: " __DATE__ ", " __TIME__;
     std::cout << "wersja " <<PROG_INFO <<" "<< GIT_BRANCH <<" " << GIT_COMMIT_HASH << std::endl;
+
     return ret;
 }
