@@ -13,6 +13,19 @@ public:
     std::string host = "test.mosquitto.org";
 };
 
+TEST_F(MQTT_BT, emptyQueue)
+{
+    MQTT_mosquitto mq("test_iDomServer",topicSubscribe,host,1883,60,false);
+    try {
+        mq.getMessage();
+    } catch (const std::string& e) {
+        std::cout << "wyjatek: " << e << std::endl;
+        SUCCEED();
+        return;
+    }
+    FAIL();
+}
+
 TEST_F(MQTT_BT, wrong_host)
 {
     EXPECT_ANY_THROW(MQTT_mosquitto("test_iDomServer","fake_topic","fake host",1883,60,false));
@@ -58,8 +71,8 @@ TEST_F(MQTT_BT, flow)
             FAIL() << "a to nie jest ok porownanie: " << i << std::endl;
         }
     }
-   // std::string dtar;
-   // std::cin >> dtar;
+//    std::string dtar;
+//    std::cin >> dtar;
     mq.disconnect();
 
 }
