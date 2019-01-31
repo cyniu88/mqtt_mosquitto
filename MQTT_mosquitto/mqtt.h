@@ -35,7 +35,7 @@ public:
                    bool clean_session = true);
     ~MQTT_mosquitto();
 
-    int publish(const std::string&  topic, const std::string& msg, int qos = 2);
+    int publish(const std::string& topic, const std::string& msg, int qos = 2);
     void disconnect();
     void turnOnDebugeMode();
     void turnOffDebugeMode();

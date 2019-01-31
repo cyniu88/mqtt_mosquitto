@@ -54,7 +54,7 @@ TEST_F(MQTT_BT, flow)
     puts("stop sleep");
     int ssize = mq.getReceiveQueueSize();
     if( ssize != ilosc){
-        FAIL() <<"error  nie odebralem wszystkich wiadomosci " << ssize << std::endl;
+        FAIL() <<"error nie odebralem wszystkich wiadomosci " << ssize << std::endl;
     }
     else {
         std::cout << "gra ilosc wiadomosci odebranych " << ssize << std::endl;

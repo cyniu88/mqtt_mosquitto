@@ -40,7 +40,7 @@ void MQTT_mosquitto::my_connect_callback(struct mosquitto *mosq, void *userdata,
         }
         else
         {
-            std::cout << stderr <<  " Connect failed" << std::endl;
+            std::cout << stderr << " Connect failed" << std::endl;
         }
     }
 }
@@ -58,7 +58,7 @@ void MQTT_mosquitto::my_disconnect_callback(mosquitto *mosq, void *userdata, int
         }
         else
         {
-            std::cout << stderr <<  " Disconnect failed" << std::endl;
+            std::cout << stderr << " Disconnect failed" << std::endl;
         }
     }
 }
@@ -150,11 +150,11 @@ MQTT_mosquitto::~MQTT_mosquitto()
 int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, int qos)
 {
     std::lock_guard <std::mutex> lock(_publish_mutex);
-    int r =  mosquitto_publish(_mosq, nullptr, topic.c_str(), msg.size(), msg.c_str(), qos, false);
+    int r = mosquitto_publish(_mosq, nullptr, topic.c_str(), msg.size(), msg.c_str(), qos, false);
     if (r != 0){
         throw std::string("problem with publish MQTT");
     }
-    usleep(10); //NOTE wait 10 usek due to SIGILL
+    //usleep(1); //NOTE wait 10 usek due to SIGILL
     return r;
 }
 
@@ -200,6 +200,6 @@ std::pair<std::string, std::string> MQTT_mosquitto::getMessage()
 
 void MQTT_mosquitto::subscribeHandlerRunInThread(MQTT_mosquitto* ptrMQTT)
 {
-    auto ret =  mosquitto_loop_forever(ptrMQTT->_mosq, -1, 1);
+    auto ret = mosquitto_loop_forever(ptrMQTT->_mosq, -1, 1);
     std::cout << "loop forever return: " << ret << std::endl;
 }
