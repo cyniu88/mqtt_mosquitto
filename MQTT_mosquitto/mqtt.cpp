@@ -2,62 +2,63 @@
 #include <iostream>
 #include <unistd.h>
 
-bool MQTT_mosquitto::_debugeMode = false;
-
 void MQTT_mosquitto::my_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message)
 {
-    if(MQTT_mosquitto::_debugeMode == true)
+    auto mqttPTR = static_cast<MQTT_mosquitto*> (userdata);
+    if(mqttPTR->_debugeMode == true)
     {
         puts("void my_message_callback()");
         puts("\n\nodebralem:");
         if(message->payloadlen){
-            printf("%s %s\n", message->topic, message->payload);
-        }else{
-            printf("%s (null)\n", message->topic);
+            std::cout << "topic: " << message->topic << " msg: " << static_cast<char*>(message->payload) << std::endl;
+        }
+        else
+        {
+            std::cout << "topic: " << message->topic << std::endl;
         }
         fflush(stdout);
 
-        std::string rec = (char*)(message->payload);
-        if(rec == "EXIT")
-        {
-            puts("EXIT JEST");
-            mosquitto_disconnect(mosq);
-        }
+//        std::string rec = static_cast<char*>(message->payload);
+//        if(rec == "EXIT")
+//        {
+//            puts("EXIT JEST");
+//            mosquitto_disconnect(mosq);
+//        }
     }
-    MQTT_mosquitto::putToReceiveQueue((char*)(message->topic),(char*)(message->payload));
+    mqttPTR->putToReceiveQueue(static_cast<char*>(message->topic), static_cast<char*>(message->payload));
 }
 
 void MQTT_mosquitto::my_connect_callback(struct mosquitto *mosq, void *userdata, int result)
 {
-    auto data = static_cast<MQTT_callback_DATA*> (userdata);
-    mosquitto_subscribe(mosq,NULL, data->topic.c_str(),2);
-    if(MQTT_mosquitto::_debugeMode == true)
+    auto mqttPTR = static_cast<MQTT_mosquitto*> (userdata);
+    mosquitto_subscribe(mosq,nullptr, mqttPTR->_topic.c_str(),2);
+    if(mqttPTR->_debugeMode == true)
     {
         puts("my_connect_callback()");
         if(!result){
-           puts("connectd to broker");
+            puts("connectd to broker");
         }
         else
         {
-            fprintf(stderr, "Connect failed\n");
+            std::cout << stderr <<  " Connect failed" << std::endl;
         }
     }
 }
 
 void MQTT_mosquitto::my_disconnect_callback(mosquitto *mosq, void *userdata, int result)
 {
-    auto data = static_cast<MQTT_callback_DATA*> (userdata);
-    data->subscribed = false;
+    auto mqttPTR = static_cast<MQTT_mosquitto*> (userdata);
+    mqttPTR->_subscribed = false;
 
-    if(MQTT_mosquitto::_debugeMode == true)
+    if(mqttPTR->_debugeMode == true)
     {
-        puts("my_disconnect_callback()");
-        if(!result){
-           puts("disconnectd to broker");
+        std::cout << "my_disconnect_callback()" << std::endl <<" disconnect result " << result << std::endl;
+        if(result == 0){
+            puts("disconnectd to broker");
         }
         else
         {
-            fprintf(stderr, "cyniu Disconnect failed\n");
+            std::cout << stderr <<  " Disconnect failed" << std::endl;
         }
     }
 }
@@ -68,30 +69,29 @@ void MQTT_mosquitto::my_subscribe_callback(struct mosquitto *mosq,
                                            int qos_count,
                                            const int *granted_qos)
 {
-    auto data = static_cast<MQTT_callback_DATA*> (userdata);
-    data->subscribed = true;
-    if(MQTT_mosquitto::_debugeMode == true)
+    auto mqttPTR = static_cast<MQTT_mosquitto*> (userdata);
+    mqttPTR->_subscribed = true;
+    if(mqttPTR->_debugeMode == true)
     {
         puts("my_subscribe_callback()");
         int i;
 
-        printf("Subscribed (mid: %d): %d", mid, granted_qos[0]);
+        std::cout <<"Subscribed (mid: " << mid << "): " << ", granted_qos: " << granted_qos[0] << std::endl;
         for(i=1; i<qos_count; i++){
-            printf(", %d", granted_qos[i]);
+            std::cout << ", " << granted_qos[i] << " " ;
         }
-        printf("\n");
+        std::cout << std::endl;
     }
 }
 
 void MQTT_mosquitto::my_unsubscribe_callback(mosquitto *mosq, void *userdata, int result)
 {
-    auto data = (MQTT_callback_DATA*) (userdata);
-    data->subscribed = false;
-    if(MQTT_mosquitto::_debugeMode == true)
+    auto mqttPTR = static_cast<MQTT_mosquitto*>(userdata);
+    mqttPTR->_subscribed = false;
+    if(mqttPTR->_debugeMode == true)
     {
         puts("my_unsubscribe_callback()");
-        printf("Unubscribed");
-        printf("\n");
+        puts("Unubscribed");
     }
 }
 
@@ -100,10 +100,11 @@ void MQTT_mosquitto::my_log_callback(struct mosquitto *mosq,
                                      int level,
                                      const char *str)
 {
-    if(MQTT_mosquitto::_debugeMode == true)
+    auto mqttPTR = static_cast<MQTT_mosquitto*>(userdata);
+    if(mqttPTR->_debugeMode == true)
     {
         puts("my_log_callback()");
-        printf("%s\n", str);
+        puts(str);
     }
 }
 
@@ -111,18 +112,20 @@ MQTT_mosquitto::MQTT_mosquitto(const std::string& username,
                                const std::string& topic,
                                const std::string& host,
                                int port,
+                               int qos,
                                int keepalive,
-                               bool clean_session): _host(host),
-                                                     _port(port),
-                                                     _keepalive(keepalive),
-                                                     _clean_session(clean_session)
+                               bool clean_session): _topic(topic),
+                                                    _host(host),
+                                                    _port(port),
+                                                    _qos(qos),
+                                                    _keepalive(keepalive),
+                                                    _clean_session(clean_session)
 {
-    callbackData.topic = topic;
     mosquitto_lib_init();
-    _mosq = mosquitto_new(username.c_str(), clean_session, &callbackData);
+    _mosq = mosquitto_new(username.c_str(), clean_session, this);
 
     if(!_mosq){
-        fprintf(stderr, "Error: Out of memory.\n");
+        std::cout << stderr << " Error: Out of memory." << std::endl;
         throw "cannot create MQTT";
     }
     mosquitto_log_callback_set(_mosq, my_log_callback);
@@ -133,8 +136,8 @@ MQTT_mosquitto::MQTT_mosquitto(const std::string& username,
     mosquitto_unsubscribe_callback_set(_mosq, my_unsubscribe_callback);
 
     if(mosquitto_connect(_mosq, _host.c_str(), _port, _keepalive)){
-        fprintf(stderr, "Unable to connect.\n");
-        throw "cannot connect to MQTT broker";
+        std::cout << stderr << " Unable to connect." << std::endl;
+        throw std::string("cannot connect to MQTT broker");
     }
 }
 
@@ -147,7 +150,7 @@ MQTT_mosquitto::~MQTT_mosquitto()
 int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, int qos)
 {
     std::lock_guard <std::mutex> lock(_publish_mutex);
-    int r =  mosquitto_publish(_mosq, NULL, topic.c_str(), msg.size(), msg.c_str(), qos, false);
+    int r =  mosquitto_publish(_mosq, nullptr, topic.c_str(), msg.size(), msg.c_str(), qos, false);
     if (r != 0){
         throw std::string("problem with publish MQTT");
     }
@@ -171,11 +174,6 @@ void MQTT_mosquitto::turnOffDebugeMode()
     _debugeMode = false;
     puts("MQTT debuge mode OFF");
 }
-
-std::mutex MQTT_mosquitto::_queue_mutex;
-std::mutex MQTT_mosquitto::_publish_mutex;
-
-std::queue<std::pair<std::string,std::string>> MQTT_mosquitto::_receivQueue;
 
 void MQTT_mosquitto::putToReceiveQueue(const std::string &topic, const std::string &msg)
 {
@@ -202,6 +200,6 @@ std::pair<std::string, std::string> MQTT_mosquitto::getMessage()
 
 void MQTT_mosquitto::subscribeHandlerRunInThread(MQTT_mosquitto* ptrMQTT)
 {
-   auto ret =  mosquitto_loop_forever(ptrMQTT->_mosq, -1, 1);
-   std::cout << "loop forever return: " << ret << std::endl;
+    auto ret =  mosquitto_loop_forever(ptrMQTT->_mosq, -1, 1);
+    std::cout << "loop forever return: " << ret << std::endl;
 }

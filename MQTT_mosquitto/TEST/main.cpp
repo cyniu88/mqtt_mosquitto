@@ -9,7 +9,7 @@ class MQTT_BT : public ::testing::Test
 {
 public:
     std::string topicSubscribe = "iDom/#";
-    std::string topicPublish = "iDom/bt";
+    std::string topicPublish = "iDom/bt/cyniu";
     std::string host = "test.mosquitto.org";
 };
 
@@ -34,7 +34,6 @@ TEST_F(MQTT_BT, wrong_host)
 TEST_F(MQTT_BT, flow)
 {
     int ilosc = 80;
-    /// iot.eclipse.org
     MQTT_mosquitto mq("test_iDomServer",topicSubscribe,host,1883,60,false);
     mq.turnOnDebugeMode();
 
@@ -42,7 +41,7 @@ TEST_F(MQTT_BT, flow)
     auto th1 = std::thread(MQTT_mosquitto::subscribeHandlerRunInThread,&mq);
     th1.detach();
 
-    while(mq.callbackData.subscribed == false){
+    while(mq._subscribed == false){
     }
 
     for(int i = 1; i < ilosc+1 ; ++ i)
@@ -51,9 +50,9 @@ TEST_F(MQTT_BT, flow)
         std::cout << "wysłano wiadomosc numer: " << i << std::endl;
     }
     puts("start sleep");
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+    std::this_thread::sleep_for(std::chrono::seconds(7));
     puts("stop sleep");
-    int ssize = MQTT_mosquitto::getReceiveQueueSize();
+    int ssize = mq.getReceiveQueueSize();
     if( ssize != ilosc){
         FAIL() <<"error  nie odebralem wszystkich wiadomosci " << ssize << std::endl;
     }
@@ -63,7 +62,7 @@ TEST_F(MQTT_BT, flow)
 
     for(int i = 1; i < ssize+1; ++i){
         std::cout << "w forze: " << i << std::endl;
-        auto pairMSG = MQTT_mosquitto::getMessage();
+        auto pairMSG = mq.getMessage();
         if(pairMSG.second == "test message: " + std::to_string(i)){
             std::cout << "jest ok porownanie: " << i << std::endl;
         }
@@ -71,11 +70,10 @@ TEST_F(MQTT_BT, flow)
             FAIL() << "a to nie jest ok porownanie: " << i << std::endl;
         }
     }
-//    std::string dtar;
-//    std::cin >> dtar;
-    mq.disconnect();
 
+    mq.disconnect();
 }
+
 int main(int argc, char *argv[])
 {
 

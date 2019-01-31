@@ -7,46 +7,44 @@
 #include <mutex>
 #include <queue>
 
-struct MQTT_callback_DATA{
-    std::string topic = "NULL";
-    bool subscribed = false;
-};
-
 class MQTT_mosquitto
 {
-public:
-    MQTT_callback_DATA callbackData;
+    std::string _topic = "NULL";
     std::string _host;
     int _port;
+    int _qos;
     int _keepalive;
     bool _clean_session;
-    struct mosquitto *_mosq = NULL;
-    static bool _debugeMode;
-    static std::queue<std::pair<std::string,std::string>> _receivQueue;
+    struct mosquitto *_mosq = nullptr;
+    bool _debugeMode = false;
+    std::queue<std::pair<std::string,std::string>> _receivQueue;
 
 protected:
-    static std::mutex _publish_mutex;
-    static std::mutex _queue_mutex;
+    std::mutex _publish_mutex;
+    std::mutex _queue_mutex;
+
 public:
+    bool _subscribed = false;
+
     MQTT_mosquitto(const std::string& username,
                    const std::string& topic,
                    const std::string& host = "localhost",
                    int port = 1883,
+                   int qos = 2,
                    int keepalive = 60,
                    bool clean_session = true);
     ~MQTT_mosquitto();
 
-    int publish(const std::string&  topic, const std::string& msg, int qos);
+    int publish(const std::string&  topic, const std::string& msg, int qos = 2);
     void disconnect();
     void turnOnDebugeMode();
     void turnOffDebugeMode();
 
     static void subscribeHandlerRunInThread(MQTT_mosquitto* ptrMQTT);
 
-    static void putToReceiveQueue(const std::string& topic, const std::string& msg);
-
-    static int getReceiveQueueSize();
-    static std::pair<std::string, std::string> getMessage();
+    void putToReceiveQueue(const std::string& topic, const std::string& msg);
+    int getReceiveQueueSize();
+    std::pair<std::string, std::string> getMessage();
 private:
     //callback
     static void my_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message);
