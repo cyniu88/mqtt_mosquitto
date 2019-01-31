@@ -29,7 +29,7 @@ void MQTT_mosquitto::my_message_callback(struct mosquitto *mosq, void *userdata,
 
 void MQTT_mosquitto::my_connect_callback(struct mosquitto *mosq, void *userdata, int result)
 {
-    MQTT_callback_DATA* data = (MQTT_callback_DATA*) (userdata);
+    auto data = static_cast<MQTT_callback_DATA*> (userdata);
     mosquitto_subscribe(mosq,NULL, data->topic.c_str(),2);
     if(MQTT_mosquitto::_debugeMode == true)
     {
@@ -46,7 +46,7 @@ void MQTT_mosquitto::my_connect_callback(struct mosquitto *mosq, void *userdata,
 
 void MQTT_mosquitto::my_disconnect_callback(mosquitto *mosq, void *userdata, int result)
 {
-    auto data = (MQTT_callback_DATA*) (userdata);
+    auto data = static_cast<MQTT_callback_DATA*> (userdata);
     data->subscribed = false;
 
     if(MQTT_mosquitto::_debugeMode == true)
@@ -68,7 +68,7 @@ void MQTT_mosquitto::my_subscribe_callback(struct mosquitto *mosq,
                                            int qos_count,
                                            const int *granted_qos)
 {
-    auto data = (MQTT_callback_DATA*) (userdata);
+    auto data = static_cast<MQTT_callback_DATA*> (userdata);
     data->subscribed = true;
     if(MQTT_mosquitto::_debugeMode == true)
     {
@@ -187,7 +187,7 @@ void MQTT_mosquitto::putToReceiveQueue(const std::string &topic, const std::stri
 int MQTT_mosquitto::getReceiveQueueSize()
 {
     std::lock_guard <std::mutex> lock(_queue_mutex);
-    return _receivQueue.size();
+    return static_cast<int>(_receivQueue.size());
 }
 
 std::pair<std::string, std::string> MQTT_mosquitto::getMessage()
