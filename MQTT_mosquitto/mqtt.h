@@ -27,13 +27,15 @@ public:
     bool _subscribed = false;
 
     MQTT_mosquitto(const std::string& username,
-                   const std::string& topic,
-                   const std::string& host = "localhost",
-                   int port = 1883,
-                   int qos = 2,
-                   int keepalive = 60,
                    bool clean_session = true);
+
     ~MQTT_mosquitto();
+
+    void connect(const std::string& topic,
+                 const std::string& host  = "localhost",
+                 int port = 1883,
+                 int qos = 2,
+                 int keepalive = 60);
 
     int publish(const std::string& topic, const std::string& msg, int qos = 2);
     void disconnect();

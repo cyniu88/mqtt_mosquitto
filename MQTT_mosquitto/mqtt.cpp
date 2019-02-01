@@ -4,13 +4,14 @@
 
 void MQTT_mosquitto::my_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message)
 {
-    auto mqttPTR = static_cast<MQTT_mosquitto*> (userdata);
+    auto mqttPTR = static_cast<MQTT_mosquitto*>(userdata);
     if(mqttPTR->_debugeMode == true)
     {
         puts("void my_message_callback()");
         puts("\n\nodebralem:");
+
         if(message->payloadlen){
-            std::cout << "topic: " << message->topic << " msg: " << static_cast<char*>(message->payload) << std::endl;
+           std::cout << "topic: " << message->topic << " msg: " << static_cast<char*>(message->payload) << "|" << std::endl;
         }
         else
         {
@@ -25,13 +26,20 @@ void MQTT_mosquitto::my_message_callback(struct mosquitto *mosq, void *userdata,
 //            mosquitto_disconnect(mosq);
 //        }
     }
-    mqttPTR->putToReceiveQueue(static_cast<char*>(message->topic), static_cast<char*>(message->payload));
+
+    std::string m;
+    if(message->payloadlen){
+       m = static_cast<char*>(message->payload);
+    }
+
+    mqttPTR->putToReceiveQueue(message->topic, m);
 }
 
 void MQTT_mosquitto::my_connect_callback(struct mosquitto *mosq, void *userdata, int result)
 {
-    auto mqttPTR = static_cast<MQTT_mosquitto*> (userdata);
+    auto mqttPTR = static_cast<MQTT_mosquitto*>(userdata);
     mosquitto_subscribe(mosq,nullptr, mqttPTR->_topic.c_str(),2);
+
     if(mqttPTR->_debugeMode == true)
     {
         puts("my_connect_callback()");
@@ -47,7 +55,7 @@ void MQTT_mosquitto::my_connect_callback(struct mosquitto *mosq, void *userdata,
 
 void MQTT_mosquitto::my_disconnect_callback(mosquitto *mosq, void *userdata, int result)
 {
-    auto mqttPTR = static_cast<MQTT_mosquitto*> (userdata);
+    auto mqttPTR = static_cast<MQTT_mosquitto*>(userdata);
     mqttPTR->_subscribed = false;
 
     if(mqttPTR->_debugeMode == true)
@@ -69,8 +77,9 @@ void MQTT_mosquitto::my_subscribe_callback(struct mosquitto *mosq,
                                            int qos_count,
                                            const int *granted_qos)
 {
-    auto mqttPTR = static_cast<MQTT_mosquitto*> (userdata);
+    auto mqttPTR = static_cast<MQTT_mosquitto*>(userdata);
     mqttPTR->_subscribed = true;
+
     if(mqttPTR->_debugeMode == true)
     {
         puts("my_subscribe_callback()");
@@ -109,17 +118,7 @@ void MQTT_mosquitto::my_log_callback(struct mosquitto *mosq,
 }
 
 MQTT_mosquitto::MQTT_mosquitto(const std::string& username,
-                               const std::string& topic,
-                               const std::string& host,
-                               int port,
-                               int qos,
-                               int keepalive,
-                               bool clean_session): _topic(topic),
-                                                    _host(host),
-                                                    _port(port),
-                                                    _qos(qos),
-                                                    _keepalive(keepalive),
-                                                    _clean_session(clean_session)
+                               bool clean_session): _clean_session(clean_session)
 {
     mosquitto_lib_init();
     _mosq = mosquitto_new(username.c_str(), clean_session, this);
@@ -134,11 +133,26 @@ MQTT_mosquitto::MQTT_mosquitto(const std::string& username,
     mosquitto_message_callback_set(_mosq, my_message_callback);
     mosquitto_subscribe_callback_set(_mosq, my_subscribe_callback);
     mosquitto_unsubscribe_callback_set(_mosq, my_unsubscribe_callback);
+}
 
-    if(mosquitto_connect(_mosq, _host.c_str(), _port, _keepalive)){
-        std::cout << stderr << " Unable to connect." << std::endl;
-        throw std::string("cannot connect to MQTT broker");
-    }
+
+
+void MQTT_mosquitto::connect(const std::string& topic,
+                             const std::string& host,
+                             int port,
+                             int qos,
+                             int keepalive)
+{
+  _topic = topic;
+  _host = host;
+  _port = port;
+  _qos = qos;
+  _keepalive = keepalive;
+
+  if(mosquitto_connect(_mosq, _host.c_str(), _port, _keepalive)){
+      std::cout << stderr << " Unable to connect." << std::endl;
+      throw std::string("cannot connect to MQTT broker");
+  }
 }
 
 MQTT_mosquitto::~MQTT_mosquitto()
@@ -151,6 +165,7 @@ int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, in
 {
     std::lock_guard <std::mutex> lock(_publish_mutex);
     int r = mosquitto_publish(_mosq, nullptr, topic.c_str(), msg.size(), msg.c_str(), qos, false);
+
     if (r != 0){
         throw std::string("problem with publish MQTT");
     }
