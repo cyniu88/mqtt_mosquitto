@@ -4,23 +4,24 @@
 #include <thread>
 #include "../../MQTT_mosquitto/mqtt.h"
 
-std::string host = "192.168.4.1";
+std::string host = "test.mosquitto.org";//"192.168.4.1";
 std::string topic = "koko/#";
 std::string msg = "hello";
 
 int main()
 {
 
-    MQTT_mosquitto mqtt_server("integration_sut","iDom/#",host);
+    MQTT_mosquitto mqtt_server("integration_sut");
+
     mqtt_server.turnOnDebugeMode();
 
-    //mqtt_server.subscribe(topic,2);
+    mqtt_server.connect("iDom/#",host);
 
     puts("odpalmy subscribera MQTT w nowym watku");
     auto th1 = std::thread(MQTT_mosquitto::subscribeHandlerRunInThread,&mqtt_server);
     th1.detach();
 
-    while(mqtt_server.callbackData.subscribed == false){
+    while(mqtt_server._subscribed == false){
     }
 
     while(true){

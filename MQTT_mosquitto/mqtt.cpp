@@ -61,6 +61,7 @@ void MQTT_mosquitto::my_disconnect_callback(mosquitto *mosq, void *userdata, int
     if(mqttPTR->_debugeMode == true)
     {
         std::cout << "my_disconnect_callback()" << std::endl <<" disconnect result " << result << std::endl;
+
         if(result == 0){
             puts("disconnectd to broker");
         }
@@ -157,6 +158,7 @@ void MQTT_mosquitto::connect(const std::string& topic,
 
 MQTT_mosquitto::~MQTT_mosquitto()
 {
+    disconnect();
     mosquitto_destroy(_mosq);
     mosquitto_lib_cleanup();
 }
