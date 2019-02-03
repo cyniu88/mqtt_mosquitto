@@ -25,6 +25,7 @@ protected:
 
 public:
     bool _subscribed = false;
+    bool _connected = false;
 
     MQTT_mosquitto(const std::string& username,
                    bool clean_session = true);
@@ -32,7 +33,7 @@ public:
     ~MQTT_mosquitto();
 
     void connect(const std::string& topic,
-                 const std::string& host  = "localhost",
+                 const std::string& host = "localhost",
                  int port = 1883,
                  int qos = 2,
                  int keepalive = 60);
