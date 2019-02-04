@@ -32,6 +32,9 @@ public:
 
     ~MQTT_mosquitto();
 
+    /////////// This must be called before calling connect()
+    int setLoginAndPass(const std::string& username, const std::string& pass);
+
     void connect(const std::string& topic,
                  const std::string& host = "localhost",
                  int port = 1883,

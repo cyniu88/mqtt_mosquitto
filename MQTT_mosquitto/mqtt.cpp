@@ -152,6 +152,7 @@ void MQTT_mosquitto::connect(const std::string& topic,
     _qos = qos;
     _keepalive = keepalive;
 
+    mosquitto_threaded_set(_mosq, true);
     if(mosquitto_connect(_mosq, _host.c_str(), _port, _keepalive)){
         std::cout << stderr << " Unable to connect." << std::endl;
         throw std::string("cannot connect to MQTT broker");
@@ -163,6 +164,11 @@ MQTT_mosquitto::~MQTT_mosquitto()
     disconnect();
     mosquitto_destroy(_mosq);
     mosquitto_lib_cleanup();
+}
+
+int MQTT_mosquitto::setLoginAndPass(const std::string &username, const std::string &pass)
+{
+    return mosquitto_username_pw_set(_mosq,username.c_str(), pass.c_str());
 }
 
 int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, int qos)
