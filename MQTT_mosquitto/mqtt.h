@@ -10,11 +10,11 @@
 class MQTT_mosquitto
 {
     std::string _topic = "NULL";
-    std::string _host;
-    int _port;
-    int _qos;
-    int _keepalive;
-    bool _clean_session;
+    std::string _host = "NULL";
+    int _port = 0;
+    int _qos = 2;
+    int _keepalive = 60;
+    bool _clean_session = true;
     struct mosquitto *_mosq = nullptr;
     bool _debugeMode = false;
     std::queue<std::pair<std::string,std::string>> _receivQueue;
