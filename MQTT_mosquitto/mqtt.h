@@ -41,7 +41,8 @@ public:
                  int qos = 2,
                  int keepalive = 60);
 
-    int publish(const std::string& topic, const std::string& msg, int qos = 2);
+    int publish(const std::string& topic, const std::string& msg, int qos = 2, bool retained = false);
+    int publishRetained(const std::string& topic, const std::string& msg, int qos = 2);
     void disconnect();
     void turnOnDebugeMode();
     void turnOffDebugeMode();

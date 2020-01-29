@@ -171,13 +171,13 @@ int MQTT_mosquitto::setLoginAndPass(const std::string &username, const std::stri
     return mosquitto_username_pw_set(_mosq,username.c_str(), pass.c_str());
 }
 
-int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, int qos)
+int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, int qos, bool retained)
 {
     int r = -1;
     if(_connected == true)
     {
         std::lock_guard <std::mutex> lock(_publish_mutex);
-        r = mosquitto_publish(_mosq, nullptr, topic.c_str(), msg.size(), msg.c_str(), qos, false);
+        r = mosquitto_publish(_mosq, nullptr, topic.c_str(), msg.size(), msg.c_str(), qos, retained);
 
         if (r != 0){
             throw std::string("problem with publish MQTT");
@@ -185,6 +185,11 @@ int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, in
     }
     //usleep(1); //NOTE wait 10 usek due to SIGILL
     return r;
+}
+
+int MQTT_mosquitto::publishRetained(const std::string &topic, const std::string &msg, int qos)
+{
+    return publish(topic, msg, qos, true);
 }
 
 void MQTT_mosquitto::disconnect()
