@@ -31,9 +31,15 @@ int MQTT_mosquitto::setLoginAndPass(const std::string &username, const std::stri
         return 0;
 }
 
-int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, int qos)
+int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, int qos, bool retained)
 {
     std::cout << "MQTT_mosquitto::publish topic: " << topic << " msg: " << msg << std::endl;
+    return 0;
+}
+
+int MQTT_mosquitto::publishRetained(const std::string &topic, const std::string &msg, int qos)
+{
+    std::cout << "MQTT_mosquitto::publishRatained topic: " << topic << " msg: " << msg << std::endl;
     return 0;
 }
 
