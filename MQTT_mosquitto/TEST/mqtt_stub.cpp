@@ -62,17 +62,22 @@ void MQTT_mosquitto::turnOffDebugeMode()
 
 void MQTT_mosquitto::putToReceiveQueue(const std::string &topic, const std::string &msg)
 {
-
+    auto p = std::make_pair(topic,msg);
+    _receivQueue.push(p);
 }
 
 int MQTT_mosquitto::getReceiveQueueSize()
 {
-    return 0;
+    return static_cast<int>(_receivQueue.size());
 }
 
 std::pair<std::string, std::string> MQTT_mosquitto::getMessage()
 {
-    return std::make_pair("null","test");
+    if (_receivQueue.empty() == true)
+        throw std::string("Queue is empty");
+    auto _return = _receivQueue.front();
+    _receivQueue.pop();
+    return _return;
 }
 
 void MQTT_mosquitto::subscribeHandlerRunInThread(MQTT_mosquitto* ptrMQTT)
