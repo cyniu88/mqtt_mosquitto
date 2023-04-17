@@ -34,8 +34,8 @@ std::cout << "Hello World!" << std::endl;
 
 //        mqtt_server.publish("iDom/pub",msg,2);
         if (mqtt_server.getReceiveQueueSize() > 0){
-            auto msg = mqtt_server.getMessage();
-            std::cout << "t: " << msg.first << " " << msg.second << std::endl;
+            auto msg2 = mqtt_server.getMessage();
+            std::cout << "t: " << msg2.first << " " << msg2.second << std::endl;
         }
     }
     std::cout << "Hello World!" << std::endl;

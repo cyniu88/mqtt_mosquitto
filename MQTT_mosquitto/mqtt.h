@@ -27,7 +27,7 @@ public:
     bool _subscribed = false;
     bool _connected = false;
 
-    MQTT_mosquitto(const std::string& username,
+    explicit MQTT_mosquitto(const std::string& username,
                    bool clean_session = true);
 
     ~MQTT_mosquitto();
