@@ -18,8 +18,8 @@ TEST_F(MQTT_BT, emptyQueue)
     MQTT_mosquitto mq("test_iDomServer");
     try {
         mq.getMessage();
-    } catch (const std::string& e) {
-        std::cout << "wyjatek: " << e << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "wyjatek: " << e.what() << std::endl;
         SUCCEED();
         return;
     }
