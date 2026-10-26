@@ -1,5 +1,6 @@
 #include "../mqtt.h"
 #include <iostream>
+#include <stdexcept>
 #include <unistd.h>
 
 
@@ -74,7 +75,7 @@ int MQTT_mosquitto::getReceiveQueueSize()
 std::pair<std::string, std::string> MQTT_mosquitto::getMessage()
 {
     if (_receivQueue.empty() == true)
-        throw std::string("Queue is empty");
+        throw std::runtime_error("Queue is empty");
     auto _return = _receivQueue.front();
     _receivQueue.pop();
     return _return;

@@ -1,5 +1,6 @@
 #include "mqtt.h"
 #include <iostream>
+#include <stdexcept>
 #include <unistd.h>
 
 void MQTT_mosquitto::my_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message)
@@ -128,7 +129,7 @@ MQTT_mosquitto::MQTT_mosquitto(const std::string& username,
 
     if(!_mosq){
         std::cout << stderr << " Error: Out of memory." << std::endl;
-        throw "cannot create MQTT";
+        throw std::runtime_error("cannot create MQTT");
     }
     mosquitto_log_callback_set(_mosq, my_log_callback);
     mosquitto_connect_callback_set(_mosq, my_connect_callback);
@@ -155,7 +156,7 @@ void MQTT_mosquitto::connect(const std::string& topic,
     mosquitto_threaded_set(_mosq, true);
     if(mosquitto_connect(_mosq, _host.c_str(), _port, _keepalive)){
         std::cout << stderr << " Unable to connect." << std::endl;
-        throw std::string("cannot connect to MQTT broker");
+        throw std::runtime_error("cannot connect to MQTT broker");
     }
 }
 
@@ -180,7 +181,7 @@ int MQTT_mosquitto::publish(const std::string &topic, const std::string &msg, in
         r = mosquitto_publish(_mosq, nullptr, topic.c_str(), msg.size(), msg.c_str(), qos, retained);
 
         if (r != 0){
-            throw std::string("problem with publish MQTT");
+            throw std::runtime_error("problem with publish MQTT");
         }
     }
     //usleep(1); //NOTE wait 10 usek due to SIGILL
@@ -227,7 +228,7 @@ std::pair<std::string, std::string> MQTT_mosquitto::getMessage()
 {
     std::lock_guard <std::mutex> lock(_queue_mutex);
     if (_receivQueue.empty() == true)
-        throw std::string("Queue is empty");
+        throw std::runtime_error("Queue is empty");
     auto _return = _receivQueue.front();
     _receivQueue.pop();
     return _return;
